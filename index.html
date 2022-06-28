@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Type Ahead 👀</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <form class="search-form">
+    <input type="text" class="search" placeholder="City or State">
+    <ul class="suggestions">
+      <li>Filter for a city</li>
+      <li>or a state</li>
+    </ul>
+  </form>
+<script>
+const url_cities_states = 'https://gist.githubusercontent.com/Miserlou/c5cd8364bf9b2420bb29/raw/2bf258763cdddd704f8ffd3ea9a3e81d25e2c6f6/cities.json';
+
+const cities_states = [];
+
+fetch(url_cities_states).
+  then(data_blob => data_blob.json())
+  .then(data => cities_states.push(...data));
+
+function findMatches(wordToMatch, cities_states) {
+  return cities_states.filter(place => {
+    const regularExpression = new RegExp(wordToMatch, 'gi'); // g means global, it will look for all the matches in the array, while i means insensitive, meaning that the uppercase or lowercase won't matter
+    return place.city.match(regularExpression) || place.state.match(regularExpression);
+  });
+}
+
+function numberWithCommas(x) {
+    x = x.toString();
+    var pattern = /(-?\d+)(\d{3})/;
+    while (pattern.test(x))
+        x = x.replace(pattern, "$1,$2");
+    return x;
+}
+
+function displayMatches() {
+  const matchArray = findMatches(this.value, cities_states);
+  const html = matchArray.map(place => {
+
+  const regularExpression = new RegExp(this.value, 'gi');
+  const cityName = place.city.replace(regularExpression, `<span class="hl">${this.value}</span>`);
+  const stateName = place.state.replace(regularExpression, `<span class="hl">${this.value}</span>`);
+
+  return `
+  <li>
+    <span class="name">${cityName}, ${stateName}</span>
+    <span class="population">${numberWithCommas(place.population)}</span>
+  </li>
+  `;
+  }).join('');
+
+  suggestions.innerHTML = html;
+};
+
+const searchInput = document.querySelector('.search');
+const suggestions = document.querySelector('.suggestions');
+
+searchInput.addEventListener('change', displayMatches);
+searchInput.addEventListener('keyup', displayMatches);
+
+</script>
+</body>
+</html>
